@@ -1,69 +1,39 @@
-name: Build and Test Plugin ZIP
+name: Deploy and Release Plugin
 on:
   push:
     tags:
       - "*"
+
 jobs:
   tag:
-    name: Build Plugin ZIP
+    name: New tag
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-        
+        uses: actions/checkout@v2
+
+      # Setup PHP 7.4 with Composer
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '7.4'
           tools: composer
-          
-      - name: Get tag name
-        id: tag
-        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        
-      - name: Create build directory
-        run: |
-          mkdir -p build/dokan-customers
-          
-      - name: Copy plugin files
-        run: |
-          FILES=(dokan-customers.php readme.txt includes templates assets composer.json)
-          for file in "${FILES[@]}"; do
-            if [ -f "$file" ] || [ -d "$file" ]; then
-              cp -R "$file" build/dokan-customers/
-            fi
-          done
-          
-      - name: Install production dependencies
-        run: |
-          cd build/dokan-customers
-          composer install --optimize-autoloader --no-dev -q
-          rm -f composer.lock
-          
-      - name: Create ZIP artifact
-        run: |
-          cd build
-          zip -r dokan-customers-${{ steps.tag.outputs.tag }}.zip dokan-customers
-          
-      - name: Upload ZIP as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dokan-customers-${{ steps.tag.outputs.tag }}
-          path: build/dokan-customers-${{ steps.tag.outputs.tag }}.zip
-          retention-days: 90
-          
-      - name: List build contents (for debugging)
-        run: |
-          echo "=== Build directory contents ==="
-          ls -la build/dokan-customers/
-          echo ""
-          echo "=== ZIP file info ==="
-          ls -lh build/*.zip
-          echo ""
-          echo "=== ZIP contents ==="
-          unzip -l build/dokan-customers-${{ steps.tag.outputs.tag }}.zip
+
+      - name: Install dependencies
+        run: composer install --optimize-autoloader --no-dev -q
+
       - name: WordPress Plugin Deploy
+        id: deploy
         uses: 10up/action-wordpress-plugin-deploy@stable
+        with:
+          generate-zip: true
         env:
-          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ github.workspace }}/${{ github.event.repository.name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

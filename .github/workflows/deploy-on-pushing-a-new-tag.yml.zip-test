@@ -1,0 +1,64 @@
+name: Build and Test Plugin ZIP
+on:
+  push:
+    tags:
+      - "*"
+jobs:
+  tag:
+    name: Build Plugin ZIP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer
+          
+      - name: Get tag name
+        id: tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        
+      - name: Create build directory
+        run: |
+          mkdir -p build/dokan-customers
+          
+      - name: Copy plugin files
+        run: |
+          FILES=(dokan-customers.php readme.txt includes templates assets composer.json)
+          for file in "${FILES[@]}"; do
+            if [ -f "$file" ] || [ -d "$file" ]; then
+              cp -R "$file" build/dokan-customers/
+            fi
+          done
+          
+      - name: Install production dependencies
+        run: |
+          cd build/dokan-customers
+          composer install --optimize-autoloader --no-dev -q
+          rm -f composer.lock
+          
+      - name: Create ZIP artifact
+        run: |
+          cd build
+          zip -r dokan-customers-${{ steps.tag.outputs.tag }}.zip dokan-customers
+          
+      - name: Upload ZIP as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dokan-customers-${{ steps.tag.outputs.tag }}
+          path: build/dokan-customers-${{ steps.tag.outputs.tag }}.zip
+          retention-days: 90
+          
+      - name: List build contents (for debugging)
+        run: |
+          echo "=== Build directory contents ==="
+          ls -la build/dokan-customers/
+          echo ""
+          echo "=== ZIP file info ==="
+          ls -lh build/*.zip
+          echo ""
+          echo "=== ZIP contents ==="
+          unzip -l build/dokan-customers-${{ steps.tag.outputs.tag }}.zip
