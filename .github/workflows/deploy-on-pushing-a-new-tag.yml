@@ -37,7 +37,7 @@ jobs:
       - name: Install production dependencies
         run: |
           cd build/dokan-customers
-          composer install --optimize-autoloader --no-dev --no-interaction
+          composer install --optimize-autoloader --no-dev -q
           rm -f composer.lock
           
       - name: Create ZIP artifact
