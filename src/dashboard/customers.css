@@ -1,0 +1,149 @@
+.dokan-customers-dashboard-page,
+.dokan-customers-details-page {
+    padding: 0;
+}
+
+.dokan-customers-name-link,
+.dokan-customers-order-link,
+.dokan-customers-email-link,
+.dokan-customers-back-link {
+    color: var( --dokan-button-background-color, var( --dokan-primary-color ) );
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.dokan-customers-name-link:hover,
+.dokan-customers-order-link:hover,
+.dokan-customers-email-link:hover,
+.dokan-customers-back-link:hover {
+    color: var(
+        --dokan-button-hover-background-color,
+        var( --dokan-button-background-color )
+    );
+    text-decoration: underline;
+}
+
+.dokan-customers-back-bar {
+    margin-bottom: 16px;
+}
+
+.dokan-customers-back-link {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.dokan-customers-summary-card {
+    margin-bottom: 24px;
+}
+
+.dokan-customers-summary-name {
+    margin: 0;
+    padding: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: var( --dokan-heading-color, var( --dokan-text-color, CanvasText ) );
+}
+
+.dokan-customers-loading-text,
+.dokan-customers-not-found-text {
+    margin: 0;
+    font-size: 14px;
+    color: var( --dokan-muted-text-color, var( --dokan-text-secondary-color, GrayText ) );
+}
+
+.dokan-customers-summary-grid {
+    display: grid;
+    grid-template-columns: repeat( auto-fit, minmax( 200px, 1fr ) );
+    gap: 16px 24px;
+    margin: 0;
+}
+
+.dokan-customers-summary-item {
+    margin: 0;
+}
+
+.dokan-customers-summary-item-wide {
+    grid-column: 1 / -1;
+    padding-top: 12px;
+    border-top: 1px solid var( --dokan-border-color, rgba( 0, 0, 0, 0.08 ) );
+}
+
+.dokan-customers-summary-item dt {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var( --dokan-muted-text-color, var( --dokan-text-secondary-color, GrayText ) );
+    margin-bottom: 4px;
+}
+
+.dokan-customers-summary-item dd {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: var( --dokan-text-color, CanvasText );
+    word-break: break-word;
+}
+
+.dokan-customers-summary-metric {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.dokan-customers-orders-section {
+    margin-top: 24px;
+}
+
+.dokan-customers-details-page h3.dokan-customers-orders-heading {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 600 !important;
+    color: var( --dokan-heading-color, var( --dokan-text-color, CanvasText ) );
+}
+
+.dokan-customers-orders-heading-statuses {
+    font-weight: 400;
+    color: var( --dokan-muted-text-color, var( --dokan-text-secondary-color, GrayText ) );
+}
+
+.dokan-customers-export-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.dokan-customers-export-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+}
+
+.dokan-customers-export-menu {
+    position: absolute;
+    right: 0;
+    top: calc( 100% + 4px );
+    z-index: 20;
+    min-width: 160px;
+    padding: 4px 0;
+    background: var( --dokan-card-background-color, #fff );
+    border: 1px solid var( --dokan-border-color, rgba( 0, 0, 0, 0.12 ) );
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba( 0, 0, 0, 0.1 );
+}
+
+.dokan-customers-export-item {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    font-size: 14px;
+    color: var( --dokan-text-color, CanvasText );
+    cursor: pointer;
+}
+
+.dokan-customers-export-item:hover {
+    background: var( --dokan-hover-background-color, rgba( 0, 0, 0, 0.04 ) );
+}

@@ -36,8 +36,9 @@ rm -rf "$DIR/build"
 mkdir -p "$BUILD_DIR"
 
 # Run the build.
-# status "Installing dependencies... 📦"
-# npm install
+status "Installing npm dependencies and building assets... 📦"
+npm ci
+npm run build
 
 status "Generating build... 👷‍♀️"
 

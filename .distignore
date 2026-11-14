@@ -31,7 +31,10 @@ phpcs.xml
 .phpcs.xml.dist
 phpcs.xml.dist
 README.md
+CLAUDE.md
 webpack.config.js
+webpack-entries.js
+webpack-dependency-mapping.js
 wp-cli.local.yml
 yarn.lock
 tests
@@ -39,7 +42,7 @@ node_modules
 *.sql
 *.tar.gz
 *.zip
-/src
+src
 build
 postcss.config.js
 .wordpress-org

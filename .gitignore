@@ -7,3 +7,6 @@ debug.log
 phpcs-report.txt
 .phpunit.result.cache
 .gitkeep
+assets/js
+build
+vendor
