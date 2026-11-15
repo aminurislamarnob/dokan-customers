@@ -2,7 +2,7 @@
 Contributors: aminurislam01
 Tags: dokan, multi vendor, dokan customer, woocommerce, dokan multi vendor
 Requires at least: 5.0.0
-Tested up to: 6.8.2
+Tested up to: 7.1
 Stable tag: 2.0.0
 Requires PHP: 7.4
 License: GPLv2 or later
