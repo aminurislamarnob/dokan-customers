@@ -108,8 +108,15 @@ final class DokanCustomers {
 
         add_filter( 'dokan_query_var_filter', [ $this->container['manage_customers'], 'register_customers_query_var' ] );
 
-        if ( function_exists( 'dokan' ) && isset( dokan()->rewrite ) ) {
-            dokan()->rewrite->register_rule();
+        // On activation Dokan has already registered its endpoints on `init`,
+        // before this plugin was loaded, so the `customers` endpoint is not yet
+        // known to WordPress. Dokan's own flush re-runs `register_rule()` (now
+        // including our query var) and then flushes. `isset( dokan()->rewrite )`
+        // cannot be used as a guard: Dokan resolves that property through a
+        // container `__get()` without `__isset()`, so `isset()` is always false.
+        if ( function_exists( 'dokan' ) && method_exists( dokan(), 'flush_rewrite_rules' ) ) {
+            dokan()->flush_rewrite_rules();
+            return;
         }
 
         flush_rewrite_rules( true );
