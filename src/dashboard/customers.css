@@ -22,7 +22,17 @@
     tbody
     .dataviews-view-table__cell-content-wrapper {
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+}
+
+/* Dokan's shared styles give every cell a 15ch minimum width. With eight
+   columns that is wider than the card on common laptop screens (below about
+   1500px), so the sticky Actions column ends up covering Billing Address.
+   Let short columns (Orders, Phone, Total Spend) shrink to their content. */
+.dokan-customers-dashboard-page
+    .dataviews-view-table
+    .dataviews-view-table__cell-content-wrapper {
+    min-width: 0;
 }
 
 .dokan-customers-dashboard-page .dataviews-view-table th {
