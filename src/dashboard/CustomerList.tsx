@@ -124,13 +124,15 @@ export default function CustomerList( {
         fields: DEFAULT_FIELDS,
         layout: {
             styles: {
-                name: { width: '18%' },
-                email: { width: '20%' },
-                phone: { width: '12%' },
-                orders_count: { width: '8%' },
-                total_spent: { width: '12%' },
+                // Sums to 88%: the rest is left for the Actions column and
+                // cell padding so the table never overflows its card.
+                name: { width: '14%' },
+                email: { width: '18%' },
+                phone: { width: '10%' },
+                orders_count: { width: '7%' },
+                total_spent: { width: '10%' },
                 date_registered: { width: '12%' },
-                billing_address: { width: '18%' },
+                billing_address: { width: '17%' },
             },
         },
     } );
@@ -166,6 +168,21 @@ export default function CustomerList( {
             } );
 
             const result = await fetchPaginated< CustomerItem >( path );
+
+            if (
+                result.totalPages > 0 &&
+                view.page > result.totalPages
+            ) {
+                // The requested page is past the last page (a legacy
+                // `?pagenum=` link, or a search that shrank the result):
+                // jump to the last page instead of showing an empty one.
+                setView( ( prev ) => ( {
+                    ...prev,
+                    page: result.totalPages,
+                } ) );
+                return;
+            }
+
             setData( result.items );
             setTotalItems( result.totalItems );
             setTotalPages( result.totalPages );

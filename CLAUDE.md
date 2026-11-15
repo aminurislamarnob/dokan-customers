@@ -41,7 +41,7 @@ Request flow:
 4. `ManageCustomers`:
    - Adds the `customers` query var (`dokan_query_var_filter`).
    - Adds the `Customers` sidebar nav item (`dokan_get_dashboard_nav`) with `react_route => 'customers'`, `icon_name => 'Users'`, `permission => 'dokan_view_order_menu'`, and `pos => 51` when `dokan_is_seller_enabled()` is true.
-   - Redirects the legacy `/dashboard/customers/` endpoint (`template_redirect`) with a `301` redirect to `dokan_get_navigation_url( 'new' ) . '#customers'` (preserving `pagenum`/`page`/`search`/`s` query args).
+   - Redirects the legacy `/dashboard/customers/` endpoint (`template_redirect`) with a `301` redirect to `dokan_get_navigation_url( 'new' ) . '#/customers'` (the hash form Dokan's router itself emits via `navigate()`; Dokan's sidebar link `#customers` resolves to the same route) (preserving `pagenum`/`page`/`search`/`s` query args).
    - Rewrite rules are flushed **only** on plugin activation (`DokanCustomers::activate()`) and on `woocommerce_flush_rewrite_rules` (`DokanCustomers::flush_rewrite_rules()`).
 5. `Assets` registers and enqueues `assets/js/dokan-customers-dashboard.js` and `assets/js/dokan-customers-dashboard.css` (using dependencies and version from `assets/js/dokan-customers-dashboard.asset.php`) on `wp_enqueue_scripts` **only** when `dokan_is_seller_dashboard()` is true and `$wp->query_vars['new']` is set.
 6. `REST\CustomersController` (extends `WeDevs\Dokan\Abstracts\DokanRESTController`, namespace `dokan-customers/v1`, base `customers`):

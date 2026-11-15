@@ -51,6 +51,17 @@ const ORDER_LAYOUT = {
     },
 };
 
+function getRefundedTotal( item: CustomerOrderItem ): number {
+    if ( ! Array.isArray( item.refunds ) ) {
+        return 0;
+    }
+
+    return item.refunds.reduce( ( sum, refund ) => {
+        const amount = parseFloat( String( refund?.total ?? '0' ) );
+        return Number.isFinite( amount ) ? sum + Math.abs( amount ) : sum;
+    }, 0 );
+}
+
 function getStatusBadgeVariant( status: string ) {
     switch ( status ) {
         case 'completed':
@@ -361,9 +372,28 @@ export default function CustomerDetails( {
                 id: 'total',
                 label: __( 'Total', 'dokan-customers' ),
                 enableSorting: false,
-                render: ( { item }: { item: CustomerOrderItem } ) => (
-                    <PriceHtml price={ item.total } />
-                ),
+                render: ( { item }: { item: CustomerOrderItem } ) => {
+                    const refunded = getRefundedTotal( item );
+                    const gross = parseFloat( String( item.total ?? '0' ) );
+
+                    if ( refunded <= 0 || ! Number.isFinite( gross ) ) {
+                        return <PriceHtml price={ item.total } />;
+                    }
+
+                    const net = Math.max( gross - refunded, 0 );
+
+                    return (
+                        <span
+                            className="dokan-customers-order-total-refunded"
+                            title={ __( 'Partially refunded', 'dokan-customers' ) }
+                        >
+                            <del>
+                                <PriceHtml price={ gross } />
+                            </del>{ ' ' }
+                            <PriceHtml price={ net } />
+                        </span>
+                    );
+                },
             },
             {
                 id: 'earning',

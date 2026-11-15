@@ -3,6 +3,44 @@
     padding: 0;
 }
 
+/* Keep the Customers table inside its card: let long cells (email, address) wrap
+   instead of forcing the whole table to scroll sideways. The table keeps the
+   browser's automatic layout; a fixed layout starves the sticky Actions column. */
+.dokan-customers-dashboard-page .dataviews-view-table {
+    width: 100%;
+}
+
+/* Include the cell padding in the percentage column widths so they add up
+   inside the card. */
+.dokan-customers-dashboard-page .dataviews-view-table th,
+.dokan-customers-dashboard-page .dataviews-view-table td {
+    box-sizing: border-box;
+}
+
+.dokan-customers-dashboard-page
+    .dataviews-view-table
+    tbody
+    .dataviews-view-table__cell-content-wrapper {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.dokan-customers-dashboard-page .dataviews-view-table th {
+    white-space: normal;
+}
+
+.dokan-customers-order-total-refunded {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.dokan-customers-order-total-refunded del {
+    color: var( --dokan-muted-text-color, var( --dokan-text-secondary-color, GrayText ) );
+    font-weight: 400;
+}
+
 .dokan-customers-name-link,
 .dokan-customers-order-link,
 .dokan-customers-email-link,

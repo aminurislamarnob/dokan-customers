@@ -91,7 +91,7 @@ class ManageCustomers {
     }
 
     /**
-     * Redirect the legacy `/dashboard/customers/` endpoint to the React dashboard `#customers` route.
+     * Redirect the legacy `/dashboard/customers/` endpoint to the React dashboard `#/customers` route.
      *
      * @return void
      */
@@ -106,7 +106,7 @@ class ManageCustomers {
             return;
         }
 
-        $target_hash = '#customers';
+        $target_hash = '#/customers';
         $preserved   = [];
 
         // phpcs:disable WordPress.Security.NonceVerification.Recommended

@@ -17,6 +17,11 @@ export interface CustomerOrderItem {
     date_created: string;
     total: string;
     earning?: string | number;
+    refunds?: Array< {
+        id: number;
+        refund?: string;
+        total: string;
+    } >;
 }
 
 export interface RouterInjectedProps {
