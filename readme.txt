@@ -3,7 +3,7 @@ Contributors: aminurislam01
 Tags: dokan, multi vendor, dokan customer, woocommerce, dokan multi vendor
 Requires at least: 5.0.0
 Tested up to: 7.1
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -23,7 +23,18 @@ Installing this plugin is very easy just like any other WordPress plugin. Please
 2. Alternatively, download the plugin and upload the dokan-customers.zip to your plugins directory, which usually is /wp-content/plugins/.
 3. Activate the plugin from plugins page.
 
+== Screenshots ==
+
+1. The Customers page in the Dokan vendor dashboard, sorted by total spend, with each customer's email, phone, paid orders, total spend, registration date and billing address.
+2. Search customers by name or email. Searching, sorting and paging all run on the server, so large stores stay fast.
+3. The customer details page: a summary card plus the customer's Paid Orders and Other Orders with this vendor. A partially refunded order shows its original total next to the net amount.
+4. Export all customers, or only the current search results, to a CSV file.
+
 == Changelog ==
+
+= 2.0.1 =
+* **Fixed:** On screens narrower than about 1500px the Customers table was wider than its card, so the Actions column covered the Billing Address and emails wrapped mid-word. Columns now shrink to fit, text wraps between words, and long emails break after the "@".
+* **New:** Added screenshots to the plugin page.
 
 = 2.0.0 =
 * **New:** Moved the Customers page into Dokan's React vendor dashboard (`#customers`) using Dokan's `DataViews` table component, with server-side pagination, search by customer name or email, and sorting by Name, Orders, Total Spend, and Registered At.

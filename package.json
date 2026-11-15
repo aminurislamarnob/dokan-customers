@@ -1,6 +1,6 @@
 {
 	"name": "dokan-customers",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"description": "Enable customer management feature on the Dokan vendor dashboard.",
 	"author": "Aminur Islam",
 	"license": "GPL-2.0-or-later",
