@@ -2,147 +2,128 @@
 
 namespace PluginizeLab\DokanCustomers;
 
+/**
+ * Manage Customers dashboard navigation and legacy endpoint redirect.
+ */
 class ManageCustomers {
+
     /**
      * The constructor.
      */
     public function __construct() {
-        add_filter( 'dokan_query_var_filter', [ $this, 'dokan_load_document_menu' ] );
+        add_filter( 'dokan_query_var_filter', [ $this, 'register_customers_query_var' ] );
         add_filter( 'dokan_get_dashboard_nav', [ $this, 'dokan_add_customers_menu' ] );
-        add_action( 'dokan_load_custom_template', [ $this, 'dokan_load_customers_template' ] );
-        $this->flush();
+        add_filter( 'dokan_get_vendor_orders_args', [ $this, 'filter_vendor_orders_status_args' ], 10, 2 );
+        add_action( 'template_redirect', [ $this, 'redirect_legacy_customers_page' ], 1 );
     }
 
     /**
-     * Flush rewrite rules
+     * Support `paid`, `other`, and comma-separated status values when querying vendor orders.
      *
-     * @return void
+     * @param array<string, mixed> $query_args Parsed WC_Order_Query arguments.
+     * @param array<string, mixed> $args       Raw arguments passed to `dokan()->order->all()`.
+     * @return array<string, mixed>
      */
-    public function flush() {
-        dokan()->rewrite->register_rule();
-        flush_rewrite_rules();
+    public function filter_vendor_orders_status_args( $query_args, $args ) {
+        if ( empty( $args['status'] ) || ! is_string( $args['status'] ) ) {
+            return $query_args;
+        }
+
+        $status  = trim( $args['status'] );
+        $counted = REST\CustomersController::COUNTED_STATUSES;
+
+        if ( 'paid' === $status ) {
+            $query_args['status'] = $counted;
+        } elseif ( 'other' === $status ) {
+            $all_statuses         = function_exists( 'wc_get_order_statuses' ) ? array_keys( wc_get_order_statuses() ) : [];
+            $other_statuses       = array_values( array_diff( $all_statuses, $counted ) );
+            $query_args['status'] = ! empty( $other_statuses )
+                ? $other_statuses
+                : [ 'wc-pending', 'wc-cancelled', 'wc-refunded', 'wc-failed' ];
+        } elseif ( false !== strpos( $status, ',' ) ) {
+            $query_args['status'] = array_values(
+                array_filter(
+                    array_map( 'sanitize_text_field', explode( ',', $status ) )
+                )
+            );
+        }
+
+        return $query_args;
     }
 
     /**
-     * Get account formatted address.
+     * Register the `customers` query var with Dokan's rewrite rules.
      *
-     * @param  string $address_type Address type.
-     *                              Accepts: 'billing' or 'shipping'.
-     *                              Default to 'billing'.
-     * @param  int    $customer_id  Customer ID.
-     *                              Default to 0.
-     * @return string
+     * @param array<string, string> $query_vars Dokan query vars.
+     * @return array<string, string>
      */
-	public static function get_formatted_address( $address_type = 'billing', $customer_id = 0 ) {
-        $getter  = "get_{$address_type}";
-		$address = array();
-
-		if ( 0 === $customer_id ) {
-			$customer_id = get_current_user_id();
-		}
-
-		$customer = new \WC_Customer( $customer_id );
-
-		if ( is_callable( array( $customer, $getter ) ) ) {
-			$address = $customer->$getter();
-			unset( $address['first_name'], $address['last_name'], $address['company'], $address['email'], $address['tel'] );
-		}
-
-		return WC()->countries->get_formatted_address( $address, ', ' );
-	}
-
-    /**
-     * Load dokan customer document menu
-     *
-     * @param array $query_vars
-     * @return array
-     */
-    public function dokan_load_document_menu( $query_vars ) {
+    public function register_customers_query_var( $query_vars ) {
         $query_vars['customers'] = 'customers';
         return $query_vars;
     }
 
     /**
-     * Add customers menu on dokan vendor dashboard
+     * Add Customers menu item on the Dokan vendor dashboard.
      *
-     * @param array $urls
-     * @return array
+     * @param array<string, array<string, mixed>> $urls Dashboard navigation items.
+     * @return array<string, array<string, mixed>>
      */
     public function dokan_add_customers_menu( $urls ) {
-        $urls['customers'] = array(
-            'title' => __( 'Customers', 'dokan-customers' ),
-            'icon'  => '<i class="fas fa-users"></i>',
-            'url'   => dokan_get_navigation_url( 'customers' ),
-            'pos'   => 51,
-        );
+        if ( ! pluginizelab_dokan_customers()->is_supported_dokan_version() ) {
+            return $urls;
+        }
+
+        if ( ! dokan_is_seller_enabled( dokan_get_current_user_id() ) ) {
+            return $urls;
+        }
+
+        $urls['customers'] = [
+            'title'       => __( 'Customers', 'dokan-customers' ),
+            'icon'        => '<i class="fas fa-users"></i>',
+            'url'         => dokan_get_navigation_url( 'customers' ),
+            'pos'         => 51,
+            'icon_name'   => 'Users',
+            'permission'  => 'dokan_view_order_menu',
+            'react_route' => 'customers',
+        ];
+
         return $urls;
     }
 
     /**
-     * Load customers template for dokan dashboard
+     * Redirect the legacy `/dashboard/customers/` endpoint to the React dashboard `#/customers` route.
      *
-     * @param array $query_vars
      * @return void
      */
-    public function dokan_load_customers_template( $query_vars ) {
-        if ( isset( $query_vars['customers'] ) ) {
-            require_once DOKAN_CUSTOMERS_TEMPLATE_DIR . '/customers.php';
-		}
-    }
+    public function redirect_legacy_customers_page() {
+        global $wp;
 
-    /**
-     * Get collections of current vendor order ids
-     *
-     * @return array
-     */
-    public static function get_vendor_orders() {
-        $query_args = [
-            'seller_id' => dokan_get_current_user_id(),
-            'limit'     => -1,
-            'return'    => 'ids',
-        ];
-        return dokan()->order->all( $query_args );
-    }
+        if ( ! isset( $wp->query_vars['customers'] ) ) {
+            return;
+        }
 
-    /**
-     * Get collection of customer ids by vendor orders
-     *
-     * @return array
-     */
-    public static function get_vendor_customers() {
-        global $wpdb;
-        $vendor_orders = self::get_vendor_orders();
-        $customers = [];
-        if ( ! empty( $vendor_orders ) ) {
-            foreach ( $vendor_orders as $order_id ) {
-                $order = wc_get_order( $order_id );
-                $customer_id = $order->get_customer_id();
+        if ( ! function_exists( 'dokan_get_navigation_url' ) ) {
+            return;
+        }
 
-                if( !empty( $customer_id ) ){
-                    $customers[] = $order->get_customer_id();
-                }
+        $target_hash = '#/customers';
+        $preserved   = [];
+
+        // phpcs:disable WordPress.Security.NonceVerification.Recommended
+        foreach ( [ 'pagenum', 'page', 'search', 's' ] as $param ) {
+            if ( isset( $_GET[ $param ] ) && '' !== $_GET[ $param ] ) {
+                $preserved[ $param ] = sanitize_text_field( wp_unslash( $_GET[ $param ] ) );
             }
         }
-        $customers = array_unique( $customers );
-        return $customers;
-    }
+        // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
-    /**
-     * Get total spend of a customer by customer & seller id
-     *
-     * @param int $customer_id
-     * @param int $seller_id
-     * @return string
-     */
-    public static function get_total_spend_by_seller_customer( $customer_id, $seller_id ) {
-        $order_ids = dokan()->order->get_customer_order_ids_by_seller( $customer_id, $seller_id );
-        $total_spend = 0;
-        if ( is_array( $order_ids ) && count( $order_ids ) > 0 ) {
-			foreach ( $order_ids as $order_id ) {
-				$order = wc_get_order( $order_id );
-				$total_spend += $order->get_total();
-			}
-		}
-        return wc_price( $total_spend );
+        if ( ! empty( $preserved ) ) {
+            $target_hash .= '?' . http_build_query( $preserved );
+        }
+
+        $redirect_url = dokan_get_navigation_url( 'new' ) . $target_hash;
+
+        wp_safe_redirect( $redirect_url, 301 );
+        exit;
     }
 }

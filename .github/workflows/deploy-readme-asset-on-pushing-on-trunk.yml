@@ -8,7 +8,34 @@ jobs:
     name: Push to trunk
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Build the same files the tag deploy ships (vendor/ and assets/js/ are not
+      # in git). The asset-update action copies this checkout over SVN trunk and
+      # refuses to deploy if anything other than readme.txt differs, so without
+      # these steps every trunk push would fail once 2.0.0 is released.
+      # Keep these steps in sync with deploy-on-pushing-a-new-tag.yml.
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --optimize-autoloader --no-dev -q
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build
+
       - name: WordPress.org plugin asset/readme update
         uses: 10up/action-wordpress-plugin-asset-update@stable
         env:

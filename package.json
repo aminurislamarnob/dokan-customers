@@ -1,0 +1,20 @@
+{
+	"name": "dokan-customers",
+	"version": "2.0.0",
+	"description": "Enable customer management feature on the Dokan vendor dashboard.",
+	"author": "Aminur Islam",
+	"license": "GPL-2.0-or-later",
+	"private": true,
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js"
+	},
+	"devDependencies": {
+		"@wordpress/dependency-extraction-webpack-plugin": "^6.19.0",
+		"@wordpress/scripts": "^30.9.0",
+		"typescript": "^5.7.2"
+	}
+}

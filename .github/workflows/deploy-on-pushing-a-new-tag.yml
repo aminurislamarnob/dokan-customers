@@ -10,7 +10,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
+      # Stop before touching wordpress.org if the tag (v2.0.0 or 2.0.0) does not
+      # match the version in the plugin header, the main class and the readme.
+      - name: Check version
+        id: version
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          TAG="${TAG#v}"
+          HEADER=$(grep -m1 -E '^[[:space:]*]*Version:' dokan-customers.php | awk '{print $NF}' | tr -d '\r')
+          CLASS=$(grep -m1 -oE "public \\\$version = '[^']+'" includes/DokanCustomers.php | sed -E "s/.*'([^']+)'/\1/")
+          STABLE=$(grep -m1 -E '^Stable tag:' readme.txt | awk '{print $NF}' | tr -d '\r')
+          echo "tag=$TAG header=$HEADER class=$CLASS stable=$STABLE"
+          if [ "$TAG" != "$HEADER" ] || [ "$TAG" != "$CLASS" ] || [ "$TAG" != "$STABLE" ]; then
+            echo "::error::Tag $TAG does not match plugin header ($HEADER), DokanCustomers::\$version ($CLASS) and readme Stable tag ($STABLE)."
+            exit 1
+          fi
+          echo "version=$TAG" >> "$GITHUB_OUTPUT"
 
       # Setup PHP 7.4 with Composer
       - name: Setup PHP
@@ -22,6 +39,17 @@ jobs:
       - name: Install dependencies
         run: composer install --optimize-autoloader --no-dev -q
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Build assets
+        run: |
+          npm ci
+          npm run build
+
       - name: WordPress Plugin Deploy
         id: deploy
         uses: 10up/action-wordpress-plugin-deploy@stable
@@ -30,3 +58,12 @@ jobs:
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+
+      # The deploy action builds the same zip wordpress.org serves; keep a copy
+      # downloadable from the workflow run.
+      - name: Upload plugin zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: dokan-customers-${{ steps.version.outputs.version }}
+          path: ${{ steps.deploy.outputs.zip-path }}
+          retention-days: 90
