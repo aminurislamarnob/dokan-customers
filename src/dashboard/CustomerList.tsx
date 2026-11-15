@@ -52,6 +52,25 @@ function getInitialQueryParams( locationSearch?: string ): {
     };
 }
 
+/**
+ * Let a long email wrap after the "@" in a narrow column instead of in the
+ * middle of the address.
+ */
+function renderBreakableEmail( email: string ) {
+    const at = email.lastIndexOf( '@' );
+    if ( at <= 0 ) {
+        return email;
+    }
+
+    return (
+        <>
+            { email.slice( 0, at + 1 ) }
+            <wbr />
+            { email.slice( at + 1 ) }
+        </>
+    );
+}
+
 function escapeCsvCell( value: string | number ): string {
     const str = String( value ?? '' );
     if ( /[",\n\r]/.test( str ) ) {
@@ -237,7 +256,7 @@ export default function CustomerList( {
                             className="dokan-customers-email-link"
                             onClick={ ( e ) => e.stopPropagation() }
                         >
-                            { item.email }
+                            { renderBreakableEmail( item.email ) }
                         </a>
                     ) : (
                         <span>{ '\u2013' }</span>
