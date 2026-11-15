@@ -69,8 +69,9 @@ The version string lives in three places and must be bumped together:
 - `readme.txt` `Stable tag:` (also update `Tested up to:` when checking WP compatibility)
 
 Release is via GitHub Actions to wordpress.org SVN:
-- Pushing **any git tag** runs `.github/workflows/deploy-on-pushing-a-new-tag.yml`: sets up Node 20, runs `npm ci && npm run build`, runs `composer install --no-dev`, and deploys via `10up/action-wordpress-plugin-deploy`. Files excluded from the release are controlled by `.distignore`.
-- Pushing to a `trunk` branch updates only the wordpress.org readme/assets.
+- Pushing **any git tag** runs `.github/workflows/deploy-on-pushing-a-new-tag.yml`: first checks that the tag (with or without a leading `v`) equals the plugin header `Version:`, `DokanCustomers::$version` and the readme `Stable tag:` and fails otherwise, then sets up PHP 7.4 and Node 20, runs `composer install --no-dev` and `npm ci && npm run build`, deploys via `10up/action-wordpress-plugin-deploy` (files excluded by `.distignore`, `.wordpress-org/` published as SVN assets), and uploads the generated zip as a workflow artifact named `dokan-customers-<version>`.
+- Pushing to a `trunk` branch runs `.github/workflows/deploy-readme-asset-on-pushing-on-trunk.yml`, which updates only the wordpress.org readme and `.wordpress-org/` assets. It runs the same composer and npm build first, because the 10up asset-update action aborts if any distributed file other than `readme.txt` differs from SVN trunk, and `vendor/` and `assets/js/` are not in git. Keep its build steps in sync with the tag workflow.
+- wordpress.org banner and icon PNGs live in `.wordpress-org/`. Their editable SVG sources are in `resources/wporg/` (excluded from the release by `.distignore`); regenerate the PNGs with `resources/wporg/render.sh` (needs Google Chrome).
 
 ## Local development
 
