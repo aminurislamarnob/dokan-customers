@@ -8,6 +8,8 @@ jobs:
   tag:
     name: New tag
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the GitHub Release
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,11 +61,20 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
 
-      # The deploy action builds the same zip wordpress.org serves; keep a copy
-      # downloadable from the workflow run.
-      - name: Upload plugin zip
-        uses: actions/upload-artifact@v4
-        with:
-          name: dokan-customers-${{ steps.version.outputs.version }}
-          path: ${{ steps.deploy.outputs.zip-path }}
-          retention-days: 90
+      # Pushing a tag does not create a GitHub Release, so create one here with
+      # this version's changelog as the notes and the deployed zip attached.
+      # Re-running the workflow only replaces the zip on an existing release.
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          ZIP: ${{ steps.deploy.outputs.zip-path }}
+        run: |
+          ASSET="${RUNNER_TEMP}/dokan-customers-${VERSION}.zip"
+          cp "$ZIP" "$ASSET"
+          awk -v v="= ${VERSION} =" '$0 == v { f = 1; next } f && /^= / { exit } f' readme.txt > "${RUNNER_TEMP}/release-notes.md"
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$ASSET" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$ASSET" --verify-tag --title "$GITHUB_REF_NAME" --notes-file "${RUNNER_TEMP}/release-notes.md"
+          fi
